@@ -3019,7 +3019,7 @@ private:
             }
 
             if (has_checkpoint_restored_prompt) {
-                continue;
+                return;
             }
 
             // check if we can batch this slot with the previous one
@@ -3464,7 +3464,7 @@ private:
                     } // end of SLOT_STATE_STARTED
 
                     if (slot.prompt_checkpoint_restored && n_tokens_prev > 0) {
-                        continue;
+                        return;
                     }
 
                     if (!slot.can_split()) {
@@ -3536,18 +3536,7 @@ private:
                             SLT_ERR(slot, "failed to process image, res = %d\n", res);
                             send_error(slot, "failed to process image", ERROR_TYPE_SERVER);
                             slot.release();
-                            continue;
-                        }
-
-                        if (ctx_dft && llama_get_ctx_other(ctx_dft.get()) != ctx_tgt) {
-                            // TODO: in the future, figure out how to infuse target embeddings to the images
-                            //       for now, we skip this for simplicity
-                            //       maybe we simply need to call `common_speculative_process()` on the mtmd batches in the `process_chunk` above?
-                            //       [TAG_MTMD_DRAFT_PROCESSING]
-                            res = input_tokens.process_chunk(ctx_dft.get(), mctx, slot.prompt.n_tokens(), slot.prompt.tokens.pos_next(), slot.id, n_tokens_out);
-                            if (res != 0) {
-                                GGML_ABORT("failed to process multi-modal data on draft context\n");
-                            }
+                            return;
                         }
 
                         slot.n_prompt_tokens_processed += n_tokens_out;
@@ -3673,7 +3662,8 @@ private:
                     }
 
                     if (slot.prompt_checkpoint_restored || (!slot.prompt.checkpoints.empty() && near_prompt_end)) {
-                        break;
+                        add_ok = false;
+                        return;
                     }
                 }
 
