@@ -269,6 +269,7 @@ public:
     // return when the model no longer in "loading" state
     void wait(const std::string & name, std::function<bool(const server_model_meta &)> predicate);
     void wait(std::unique_lock<std::mutex> & lk, const std::string & name, std::function<bool(const server_model_meta &)> predicate);
+    void wait_until_loading_finished(const std::string & name);
 
     // ensure the model is in ready state (thread-safe)
     // return false if model is ready
